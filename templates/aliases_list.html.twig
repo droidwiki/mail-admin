@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Aliases</h1>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th>Destination</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for alias in aliases %}
+            <tr>
+                <td>
+                    {{ alias.source }}
+                </td>
+                <td>
+                    {{ alias.destination }}
+                </td>
+                <td>
+                    <a class="btn btn-primary btn-sm" href="{{ path('alias_edit', {'id': alias.id}) }}"><i class="fa fa-pencil"></i></a> <a class="btn btn-danger btn-sm" href="{{ path('alias_delete', {'id': alias.id}) }}"><i class="fa fa-trash-o"></i></a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">
+                    No aliases found
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock body %}
