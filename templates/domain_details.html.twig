@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-danger">
+                    Changing the domain-name will automatically change any existing login, too. However, aliases will not be touched.<br/>Be very careful with this functionality, as it <b>CAN NOT BE UNDONE</b>!
+                </div>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="domain">Domain</label>
+                        <input type="text" required class="form-control" name="domain" id="domain" value="{{ domain.domain }}">
+                        <small id="domainHelp" class="form-text text-muted">The domain for e-mail addresses, exlucing the @-sign.</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button> <a href="{{ path('domains_list') }}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock body %}

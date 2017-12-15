@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" required class="form-control" name="username" id="username" value="{{ user.username }}">
+                        <small id="usernameHelp" class="form-text text-muted">The username used for authenticating against the mail server.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="domain">Domain</label>
+                        <select class="form-control" name="domain" id="domain">
+                            {% for domain in domains %}
+                                <option value="{{ domain.domain }}"
+                                        {% if domain.domain == user.domain.domain %}selected{% endif %}
+                                >{{ domain.domain }}</option>
+                            {% endfor %}
+                        </select>
+                        <small id="domainHelp" class="form-text text-muted">The domain this user is assigned to.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Password: </label>
+                        {% if user.password is empty %}
+                            not set
+                        {% else %}
+                            set
+                        {% endif %}
+                        <small id="passwordHelp" class="form-text text-muted">Indicates if the user has a password or not. The password is encrypted and never visible to the user.</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button> <a href="{{ path('reset_password', {'id': user.id}) }}" class="btn btn-secondary">Reset password</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock body %}

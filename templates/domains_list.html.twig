@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Domains</h1>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Domain</th>
+                <th>Users</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for domain, users in domainAddresses %}
+            <tr>
+                <td>
+                    <a href="{{ path('domain_details', {'id': domain }) }}">{{ domain }}</a>
+                </td>
+                <td>
+                    {% for user in users %}
+                        <a href="{{ path('user', {'id': user.id }) }}">{{ user.username }}</a><br />
+                    {% endfor %}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="2">
+                    No domains found
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock body %}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        {% block stylesheets %}
+            <link rel="stylesheet" href="{{ asset('build/app.css') }}">
+        {% endblock %}
+    </head>
+    <body>
+        {% block navbar %}
+            <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+                <span class="navbar-brand" href="#">mail-admin</span>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="{{ path('domains_list') }}">Domains</a>
+                        </li>
+                        <li class="nav-item active">
+                            <a class="nav-link" href="{{ path('aliases_list') }}">Aliases</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        {% endblock %}
+        <main role="main" class="container">
+            <div>
+                {% for message in app.flashes('warning') %}
+                    <div class="alert alert-warning">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                {% for message in app.flashes('notice') %}
+                    <div class="alert alert-info">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                {% for message in app.flashes('success') %}
+                    <div class="alert alert-success">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                {% block body %}{% endblock %}
+            </div>
+        </main>
+        {% block footer %}
+        <footer class="footer">
+            <div class="container">
+                <span class="text-muted">&copy; 2017 DroidWiki</span>
+            </div>
+        </footer>
+        {% endblock %}
+        {% block javascripts %}
+            <script src="{{ asset('build/app.js') }}"></script>
+        {% endblock %}
+    </body>
+</html>
