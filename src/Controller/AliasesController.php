@@ -12,6 +12,7 @@ use App\Entity\Alias;
 use App\Repository\AliasRepository;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -26,9 +27,14 @@ class AliasesController extends Controller
      * @var AliasRepository
      */
     private $aliasRepository;
+    /**
+     * @var ObjectManager
+     */
+    private $entityManager;
 
     public function __construct(ObjectManager $em)
     {
+        $this->entityManager = $em;
         $this->aliasRepository = $em->getRepository(Alias::class);
     }
 
@@ -60,5 +66,52 @@ class AliasesController extends Controller
         return $this->render('alias_details.html.twig', [
             'alias' => $this->aliasRepository->find($id)
         ]);
+    }
+
+    /**
+     * @Route("/{id}", methods={"POST"})
+     * @param Request $req
+     * @param int $id
+     * @return Response
+     */
+    public function editAlias(Request $req, int $id) {
+        /** @var Alias $aliasData */
+        $aliasData = $this->aliasRepository->find($id);
+
+        $newSource = $req->get('source');
+        $newDestination = $req->get('destination');
+        $isError = false;
+        if ($newSource === '') {
+            $this->addFlash('warning', 'The source e-mail address can not be empty.');
+            $isError = true;
+        }
+        if ($newDestination === '') {
+            $this->addFlash('warning', 'The destination e-mail address can not be empty.');
+            $isError = true;
+        }
+        $duplicatedAlias = $this->aliasRepository->findOneBy([
+            'source' => $newSource,
+            'destination' => $newDestination,
+        ]);
+        if ($duplicatedAlias !== null && ($newSource !== $aliasData->getSource() || $newDestination !== $aliasData->getDestination())) {
+            $this->addFlash('warning', 'There\'s already an alias with the source ' . $newSource . ' and the destination ' . $newDestination . '.');
+            $isError = true;
+        }
+
+        if ($isError) {
+            return $this->redirectToRoute('alias_edit', [
+                'id' => $id,
+            ]);
+        }
+
+        $aliasData->setSource($newSource);
+        $aliasData->setDestination($newDestination);
+
+        $this->entityManager->persist($aliasData);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'The alias was saved.');
+
+        return $this->redirectToRoute('aliases_list');
     }
 }
