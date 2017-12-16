@@ -39,6 +39,59 @@ class DomainsController extends Controller {
     }
 
     /**
+     * @param Request $req
+     * @param string $title
+     * @param string|null $id
+     * @return array
+     */
+    private function getDomainDetailsInfo(Request $req, string $title, string $id = null)
+    {
+        $info = [
+            'title' => $title,
+        ];
+        if ($req->getSession()->has('domain')) {
+            $info['domain'] = [
+                'domain' => $req->getSession()->remove('domain'),
+            ];
+        }
+        if (!isset($info['domain']) && $id !== null) {
+            $info['domain'] = $this->domainsRepository->find($id);
+        }
+
+        return $info;
+    }
+
+    /**
+     * @param Request $req
+     * @param array $redirectParams An array of parameters to the redirectToRoute method. The first value is the name of
+     *  the route, the second is an array of optional parameters needed for the route.
+     * @param Domain $domainData
+     * @return null|\Symfony\Component\HttpFoundation\RedirectResponse
+     */
+    private function validateModifyDomains(Request $req, array $redirectParams, Domain $domainData = null) {
+        $newDomain = $req->get('domain');
+        $isError = false;
+        if ($newDomain === '') {
+            $this->addFlash('warning', 'The new domain-name can not be empty.');
+            $isError = true;
+        }
+        $duplicatedDomain = $this->domainsRepository->find($newDomain);
+        $changed = true;
+        if ($domainData !== null) {
+            $changed = $newDomain !== $domainData->getDomain();
+        }
+        if ($duplicatedDomain !== null && $changed) {
+            $this->addFlash('warning', 'The new domain-name ' . $newDomain . ' already exists.');
+            $isError = true;
+        }
+
+        if ($isError) {
+            $req->getSession()->set('domain', $newDomain);
+            return call_user_func_array([$this, 'redirectToRoute'], $redirectParams);
+        }
+    }
+
+    /**
      * @Route("/list", name="domains_list")
      * @return Response
      */
@@ -56,15 +109,44 @@ class DomainsController extends Controller {
     }
 
     /**
+     * @Route("/add", name="domain_add", methods={"GET"})
+     * @param Request $req
+     * @return Response
+     */
+    public function showAddDomain(Request $req) {
+        return $this->render('domain_details.html.twig', $this->getDomainDetailsInfo($req, 'Create domain'));
+    }
+
+    /**
+     * @Route("/add", methods={"POST"})
+     * @param Request $req
+     * @return Response
+     */
+    public function saveAddDomain(Request $req) {
+        $newDomain = new Domain($req->get('domain'));
+
+        $redirect = $this->validateModifyDomains($req, ['domain_add']);
+
+        if ($redirect !== null) {
+            return $redirect;
+        }
+
+        $this->entityManager->persist($newDomain);
+
+        $this->entityManager->flush();
+        $this->addFlash('success', 'The domain was added.');
+
+        return $this->redirectToRoute('domains_list');
+    }
+
+    /**
      * @Route("/{id}", name="domain_details", methods={"GET"})
+     * @param Request $req
      * @param string $id
      * @return Response
      */
-    public function showDomain(string $id) {
-        $domainData = $this->domainsRepository->find($id);
-        return $this->render('domain_details.html.twig', [
-            'domain' => $domainData,
-        ]);
+    public function showDomain(Request $req, string $id) {
+        return $this->render('domain_details.html.twig', $this->getDomainDetailsInfo($req, 'Edit domain', $id));
     }
 
     /**
@@ -77,23 +159,11 @@ class DomainsController extends Controller {
         /** @var Domain $changedDomain */
         $changedDomain = $this->domainsRepository->find($id);
         $newDomain = new Domain($req->get('domain'));
-        $duplicatedDomain = $this->domainsRepository->find($newDomain->getDomain());
 
-        $isError = false;
-        if ($duplicatedDomain !== null && $id !== $newDomain->getDomain()) {
-            $this->addFlash('warning', 'The new domain-name ' . $newDomain->getDomain() . ' already exists.');
-            $isError = true;
-        }
+        $redirect = $this->validateModifyDomains($req, ['domain_details', ['id' => $id]], $changedDomain);
 
-        if ($newDomain->getDomain() === '') {
-            $this->addFlash('warning', 'The new domain-name can not be empty.');
-            $isError = true;
-        }
-
-        if ($isError) {
-            return $this->redirectToRoute('domain_details', [
-                'id' => $id,
-            ]);
+        if ($redirect !== null) {
+            return $redirect;
         }
 
         /** @var User[] $domainUsers */
