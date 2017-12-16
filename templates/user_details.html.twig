@@ -36,8 +36,8 @@
                         {% endif %}
                         <small id="passwordHelp" class="form-text text-muted">Indicates if the user has a password or not. The password is encrypted and never visible to the user.</small>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save</button> {% if user is defined and user.exists %}<a href="{{ path('reset_password', {'id': user.id}) }}" class="btn btn-secondary">Reset password</a>{% endif %}
                 </form>
+                <button type="submit" class="btn btn-primary">Save</button> {% if user is defined and user.exists %}<a href="{{ path('reset_password', {'id': user.id}) }}" class="btn btn-secondary">Reset password</a> <form class="inline-form float-right" action="{{ path('user_delete', {'id': user.id}) }}" method="POST"><button type="submit" class="btn btn-danger"><i class="fa fa-trash-o"></i> Delete</button></form>{% endif %}
             </div>
         </div>
     </div>

@@ -146,6 +146,21 @@ class UserController extends Controller {
     }
 
     /**
+     * @Route("/{id}/delete", name="user_delete", methods={"POST"})
+     * @param int $id
+     * @return Response
+     */
+    public function deleteUser(int $id) {
+        $userData = $this->usersRepository->find($id);
+
+        $this->entityManager->remove($userData);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'The user was deleted.');
+        return $this->redirectToRoute('domains_list');
+    }
+
+    /**
      * @Route("/{id}", name="user", methods={"GET"})
      * @param Request $req
      * @param int $id

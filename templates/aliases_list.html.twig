@@ -20,7 +20,7 @@
                     {{ alias.destination }}
                 </td>
                 <td>
-                    <a class="btn btn-primary btn-sm" href="{{ path('alias_edit', {'id': alias.id}) }}"><i class="fa fa-pencil"></i></a> <form class="alias-form" action="{{ path('alias_delete', {'id': alias.id}) }}" method="POST"><button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-trash-o"></i></button></form>
+                    <a class="btn btn-primary btn-sm" href="{{ path('alias_edit', {'id': alias.id}) }}"><i class="fa fa-pencil"></i></a> <form class="inline-form" action="{{ path('alias_delete', {'id': alias.id}) }}" method="POST"><button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-trash-o"></i></button></form>
                 </td>
             </tr>
         {% else %}
