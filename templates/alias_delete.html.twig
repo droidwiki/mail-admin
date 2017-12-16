@@ -1,15 +1,13 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <h1>{{ title }}</h1>
     <form method="POST">
         <div class="container">
             <div class="row">
                 <div class="col-sm">
                     <div class="form-group">
                         <label for="source">Source address</label>
-                        <input type="text" required class="form-control" name="source" id="source"
-                               value="{% if alias is defined and alias.source is defined %}{{ alias.source }}{% endif %}">
+                        <input type="text" required class="form-control" name="source" id="source" value="{{ alias.source }}">
                         <small id="domainHelp" class="form-text text-muted">The e-mail-address for which this alias should catch e-mails for.</small>
                     </div>
                 </div>
@@ -19,8 +17,7 @@
                 <div class="col-sm">
                     <div class="form-group">
                         <label for="destination">Destination address</label>
-                        <input type="text" required class="form-control" name="destination" id="destination"
-                               value="{% if alias is defined and alias.destination is defined %}{{ alias.destination }}{% endif %}">
+                        <input type="text" required class="form-control" name="destination" id="destination" value="{{ alias.destination }}">
                         <small id="domainHelp" class="form-text text-muted">The e-mail-address where e-mails to the source address should be sent to.</small>
                     </div>
                 </div>

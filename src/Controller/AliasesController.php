@@ -49,27 +49,34 @@ class AliasesController extends Controller
     }
 
     /**
-     * @Route("/{id}/delete", name="alias_delete")
+     * @Route("/{id}/delete", name="alias_delete", methods={"POST"}, requirements={"id"="\d+"})
      * @param int $id
      * @return Response
      */
     public function deleteAlias(int $id) {
+        $aliasData = $this->aliasRepository->find($id);
 
+        $this->entityManager->remove($aliasData);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'The alias was deleted.');
+        return $this->redirectToRoute('aliases_list');
     }
 
     /**
-     * @Route("/{id}", name="alias_edit", methods={"GET"})
+     * @Route("/{id}", name="alias_edit", methods={"GET"}, requirements={"id"="\d+"})
      * @param int $id
      * @return Response
      */
     public function showAlias(int $id) {
         return $this->render('alias_details.html.twig', [
-            'alias' => $this->aliasRepository->find($id)
+            'alias' => $this->aliasRepository->find($id),
+            'title' => 'Edit alias',
         ]);
     }
 
     /**
-     * @Route("/{id}", methods={"POST"})
+     * @Route("/{id}", methods={"POST"}, requirements={"id"="\d+"})
      * @param Request $req
      * @param int $id
      * @return Response
@@ -112,6 +119,72 @@ class AliasesController extends Controller
 
         $this->addFlash('success', 'The alias was saved.');
 
+        return $this->redirectToRoute('aliases_list');
+    }
+
+    /**
+     * @Route("/add", name="alias_add", methods={"GET"})
+     * @param Request $req
+     * @return Response
+     */
+    public function showAddAlias(Request $req) {
+        $info = [
+            'title' => 'Create new alias',
+        ];
+        if ($req->getSession()->has('source')) {
+            $info['alias'] = [
+                'source' => $req->getSession()->remove('source'),
+            ];
+        }
+        if ($req->getSession()->has('destination')) {
+            if (!isset($info['alias'])) {
+                $info['alias'] = [];
+            }
+            $info['alias']['destination'] = $req->getSession()->remove('destination');
+        }
+        return $this->render('alias_details.html.twig', $info);
+    }
+
+    /**
+     * @Route("/add", methods={"POST"})
+     * @param Request $req
+     * @return Response
+     */
+    public function saveAddAlias(Request $req) {
+        $newSource = $req->get('source');
+        $newDestination = $req->get('destination');
+        $isError = false;
+        if ($newSource === '') {
+            $this->addFlash('warning', 'The source e-mail address can not be empty.');
+            $isError = true;
+        }
+        if ($newDestination === '') {
+            $this->addFlash('warning', 'The destination e-mail address can not be empty.');
+            $isError = true;
+        }
+        $alreadyExistingAlias = $this->aliasRepository->findOneBy([
+            'source' => $newSource,
+            'destination' => $newDestination,
+        ]);
+        if ($alreadyExistingAlias !== null) {
+            $this->addFlash('warning', 'There\'s already an alias with the source ' . $newSource . ' and the destination ' . $newDestination . '.');
+            $isError = true;
+        }
+
+        if ($isError) {
+            $req->getSession()->set('source', $newSource);
+            $req->getSession()->set('destination', $newDestination);
+            return $this->redirectToRoute('alias_add');
+        }
+
+        $alias = new Alias();
+        $alias->setSource($newSource);
+        $alias->setDestination($newDestination);
+
+        $this->entityManager->persist($alias);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'The alias was saved.');
         return $this->redirectToRoute('aliases_list');
     }
 }
