@@ -1,13 +1,15 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
+    <h1>{{ title }}</h1>
     <div class="container">
         <div class="row">
             <div class="col-md-12">
                 <form method="POST">
                     <div class="form-group">
                         <label for="username">Username</label>
-                        <input type="text" required class="form-control" name="username" id="username" value="{{ user.username }}">
+                        <input type="text" required class="form-control" name="username" id="username"
+                               value="{% if user is defined %}{{ user.username }}{% endif %}">
                         <small id="usernameHelp" class="form-text text-muted">The username used for authenticating against the mail server.</small>
                     </div>
                     <div class="form-group">
@@ -15,7 +17,7 @@
                         <select class="form-control" name="domain" id="domain">
                             {% for domain in domains %}
                                 <option value="{{ domain.domain }}"
-                                        {% if domain.domain == user.domain.domain %}selected{% endif %}
+                                        {% if user is defined and domain.domain == user.domain.domain %}selected{% endif %}
                                 >{{ domain.domain }}</option>
                             {% endfor %}
                         </select>
@@ -23,14 +25,18 @@
                     </div>
                     <div class="form-group">
                         <label>Password: </label>
-                        {% if user.password is empty %}
-                            not set
+                        {% if user is not defined or not user.exists %}
+                            <input type="password" required class="form-control" name="password" id="password">
                         {% else %}
-                            set
+                            {% if user.password is empty %}
+                                not set
+                            {% else %}
+                                set
+                            {% endif %}
                         {% endif %}
                         <small id="passwordHelp" class="form-text text-muted">Indicates if the user has a password or not. The password is encrypted and never visible to the user.</small>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save</button> <a href="{{ path('reset_password', {'id': user.id}) }}" class="btn btn-secondary">Reset password</a>
+                    <button type="submit" class="btn btn-primary">Save</button> {% if user is defined and user.exists %}<a href="{{ path('reset_password', {'id': user.id}) }}" class="btn btn-secondary">Reset password</a>{% endif %}
                 </form>
             </div>
         </div>

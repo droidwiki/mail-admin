@@ -65,4 +65,8 @@ class User
         $hashedPassword = "{SHA512-CRYPT}" . crypt($password, "$6$$salt");
         $this->password = $hashedPassword;
     }
+
+    public function exists() {
+        return $this->getId() !== null;
+    }
 }

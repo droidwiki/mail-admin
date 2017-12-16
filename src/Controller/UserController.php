@@ -39,17 +39,120 @@ class UserController extends Controller {
     }
 
     /**
+     * @param Request $req
+     * @param string $title
+     * @param string|null $id
+     * @return array
+     */
+    private function getUserDetailsInfo(Request $req, string $title, string $id = null)
+    {
+        $info = [
+            'title' => $title,
+            'domains' => $this->domainsRepository->findAll(),
+        ];
+        if ($req->getSession()->has('username')) {
+            $info['user'] = new User();
+            $info['user']->setUsername($req->getSession()->remove('username'));
+        }
+        if ($req->getSession()->has('domain')) {
+            if (!isset($info['user'])) {
+                $info['user'] = new User();
+            }
+            $info['user']->setDomain(new Domain($req->getSession()->remove('domain')));
+        }
+        if (!isset($info['user']) && $id !== null) {
+            $info['user'] = $this->usersRepository->find($id);
+        }
+
+        return $info;
+    }
+
+    /**
+     * @param Request $req
+     * @param array $redirectParams An array of parameters to the redirectToRoute method. The first value is the name of
+     *  the route, the second is an array of optional parameters needed for the route.
+     * @param User $userData
+     * @return null|\Symfony\Component\HttpFoundation\RedirectResponse
+     */
+    private function validateModifyUser(Request $req, array $redirectParams, User $userData = null) {
+        $newUsername = $req->get('username');
+        $newDomain = $req->get('domain');
+        $newPassword = $req->get('password');
+        $isError = false;
+        $domain = $this->domainsRepository->find($newDomain);
+        if ($domain === null) {
+            $this->addFlash('warning', 'Domain ' . $newDomain . ' is not valid');
+            $isError = true;
+        }
+
+        if ($userData === null || $userData->getUsername() !== $newUsername) {
+            $duplicateUser = $this->usersRepository->findOneByUsername($newUsername, $newDomain);
+            if ($duplicateUser !== null) {
+                $this->addFlash('warning', 'The username ' . $newUsername . ' already exists in the domain ' . $newDomain . '.');
+                $isError = true;
+            }
+        }
+
+        if ($newUsername === '') {
+            $this->addFlash('warning', 'The username can not be empty');
+            $isError = true;
+        }
+        if ($newDomain === '') {
+            $this->addFlash('warning', 'The domain-name can not be empty.');
+            $isError = true;
+        }
+        if ($userData === null && $newPassword === '') {
+            $this->addFlash('warning', 'The password can not be empty.');
+            $isError = true;
+        }
+
+        if ($isError) {
+            $req->getSession()->set('username', $newUsername);
+            $req->getSession()->set('domain', $newDomain);
+            return call_user_func_array([$this, 'redirectToRoute'], $redirectParams);
+        }
+    }
+
+    /**
+     * @Route("/add", name="user_add", methods={"GET"})
+     * @param Request $req
+     * @return Response
+     */
+    public function showAddUser(Request $req) {
+        return $this->render('user_details.html.twig', $this->getUserDetailsInfo($req, 'Add user'));
+    }
+
+    /**
+     * @Route("/add", methods={"POST"})
+     * @param Request $req
+     * @return Response
+     */
+    public function saveAddUser(Request $req) {
+        $redirect = $this->validateModifyUser($req, ['user_add']);
+
+        if ($redirect !== null) {
+            return $redirect;
+        }
+        $user = new User();
+        $user->setDomain(new Domain($req->get('domain')));
+        $user->setUsername($req->get('username'));
+        $user->setPassword($req->get('password'));
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'The user was added.');
+        return $this->redirectToRoute('domains_list');
+    }
+
+    /**
      * @Route("/{id}", name="user", methods={"GET"})
+     * @param Request $req
      * @param int $id
      * @return Response
      */
-    public function showUser(int $id) {
-        $userData = $this->usersRepository->find($id);
-
-        return $this->render('user_details.html.twig', [
-            'user' => $userData,
-            'domains' => $this->domainsRepository->findAll()
-        ]);
+    public function showUser(Request $req, int $id) {
+        return $this->render('user_details.html.twig', $this->getUserDetailsInfo($req, 'Edit user', $id));
     }
 
     /**
