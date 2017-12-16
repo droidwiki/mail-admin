@@ -140,6 +140,28 @@ class DomainsController extends Controller {
     }
 
     /**
+     * @Route("/{id}/delete", name="domain_delete", methods={"POST"})
+     * @param string $id
+     * @return Response
+     */
+    public function deleteDomain(string $id) {
+        $domainData = $this->domainsRepository->find($id);
+        $domainUsers = $this->usersRepository->findByDomain($domainData);
+
+        if (!empty($domainUsers)) {
+            $this->addFlash('warning', 'The domain ' . $domainData->getDomain() .
+                ' still has assigned users and can therefore not be deleted. Please move all users to another domain or delete them and try deleting the domain again.');
+            return $this->redirectToRoute('domains_list');
+        }
+
+        $this->entityManager->remove($domainData);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'The domain was deleted.');
+        return $this->redirectToRoute('domains_list');
+    }
+
+    /**
      * @Route("/{id}", name="domain_details", methods={"GET"})
      * @param Request $req
      * @param string $id
