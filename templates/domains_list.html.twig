@@ -22,7 +22,7 @@
                     {% endfor %}
                 </td>
                 <td>
-                    <a class="btn btn-primary btn-sm" href="{{ path('domain_details', {'id': domain }) }}"><i class="fa fa-pencil"></i></a> <form class="inline-form" action="{{ path('domain_delete', {'id': domain}) }}" method="POST"><button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-trash-o"></i></button></form>
+                    <a class="btn btn-primary btn-sm" href="{{ path('domain_details', {'id': domain }) }}"><i class="fa fa-pencil"></i></a> <form class="inline-block-form" action="{{ path('domain_delete', {'id': domain}) }}" method="POST"><button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-trash-o"></i></button></form>
                 </td>
             </tr>
         {% else %}
